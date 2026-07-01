@@ -110,9 +110,9 @@ def check_update_async():
                 return
 
             _update_status["remote_version"] = remote_ver
-            _log(f"Local: v{local_ver}, Remote: v{remote_ver}")
+            _log(f"Local: {local_ver}, Remote: {remote_ver}")
 
-            if remote_ver <= local_ver:
+            if remote_ver <= local_ver.lstrip("v"):
                 _log("Already up to date")
                 _update_status["available"] = False
                 _update_status["checking"] = False
