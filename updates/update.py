@@ -232,7 +232,7 @@ def install_update_async():
 
             # Step 4: Update VERSION
             with open(os.path.join(BOT_DIR, "VERSION"), "w") as f:
-                f.write(remote_ver + "\n")
+                f.write("v" + remote_ver + "\n")
 
             _update_status["progress"] = 100
             _update_status["done"] = True

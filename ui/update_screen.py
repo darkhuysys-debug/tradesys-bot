@@ -234,10 +234,10 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
 
     info_y = y0 + 1
     safe_addstr(win, info_y, 2, "Local: ", cg(WHITE))
-    safe_addstr(win, info_y, 8, local_ver, cg(CYAN) | curses.A_BOLD)
-    safe_addstr(win, info_y, 8 + 6 + 1, " Remote: ", cg(WHITE))
-    rv_color = GREEN if (remote_ver != "—" and remote_ver != local_ver) else DIM
-    safe_addstr(win, info_y, 8 + 6 + 1 + 8, remote_ver, cg(rv_color))
+    rv_label_x = 22
+    safe_addstr(win, info_y, 8, local_ver[:rv_label_x - 18], cg(CYAN) | curses.A_BOLD)
+    safe_addstr(win, info_y, rv_label_x, " Remote: ", cg(WHITE))
+    safe_addstr(win, info_y, rv_label_x + 8, remote_ver, cg(rv_color))
 
     if available and remote_ver > local_ver:
         safe_addstr(win, info_y, max_x - 16, "NEW!", cg(GREEN) | curses.A_BOLD)
@@ -299,9 +299,9 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
     elif error and not checking:
         safe_addstr(win, status_y + 1, 2, f"✗  {error}", cg(RED))
     else:
-        msg = f"Ready · v{local_ver}"
+        msg = f"Ready · {local_ver}"
         if checking:
-            msg = f"Checking... (local v{local_ver})"
+            msg = f"Checking... (local {local_ver})"
         safe_addstr(win, status_y + 1, 2, msg, cg(GREEN))
 
     log_y = status_y + 3
