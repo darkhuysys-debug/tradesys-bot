@@ -48,13 +48,14 @@ def draw_menu(win, menu_sel=0, hover_sel=-1):
     bot_tag  = "RUN" if state.running else "STOP"
     bot_col  = GREEN if state.running else RED
 
+    logo_max_w = max((len(line) for line in LOGO), default=0)
+    logo_x = max(1, (max_x - logo_max_w) // 2)
     logo_y = max(2, (max_y - len(LOGO) - 6) // 2)
     for i, line in enumerate(LOGO):
-        x = max(1, (max_x - len(line)) // 2)
-        safe_addstr(win, logo_y + i, x, line, cg(GREEN) | curses.A_BOLD)
+        safe_addstr(win, logo_y + i, logo_x, line, cg(GREEN) | curses.A_BOLD)
 
     ty = logo_y + len(LOGO) + 1
-    tag = f"Trade SyS \u00b7 {ver}"
+    tag = f"Trade SyS · {ver}"
     safe_addstr(win, ty, (max_x - len(tag)) // 2, tag, cg(GREEN) | curses.A_BOLD)
 
     sb_y = ty + 2
