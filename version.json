@@ -1,0 +1,150 @@
+{
+  "version": "0.11-beta",
+  "files": [
+    {
+      "path": "bot/bybit_api.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/engine.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/executor.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/indicators.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/__init__.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/multi_tf.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/regime.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/risk_manager.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/signal_engine.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "bot/trailing.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "config.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "main.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "state.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/alerts_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/base.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/colors.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/dashboard.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/__init__.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/logs_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/menu_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/mode_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/running_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/strategy_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/symbols_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "ui/update_screen.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "uninstall.sh",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "updates/__init__.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "updates/update.py",
+      "type": "stable",
+      "note": ""
+    },
+    {
+      "path": "VERSION",
+      "type": "stable",
+      "note": ""
+    }
+  ]
+}

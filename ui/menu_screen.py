@@ -59,13 +59,17 @@ def draw_menu(win, menu_sel=0, hover_sel=-1):
 
     sb_y = ty + 1
     mode_col = GREEN if mode_tag == "DEMO" else CYAN
-    safe_addstr(win, sb_y, 2, f"Mode: {mode_tag}", cg(mode_col) | curses.A_BOLD)
-    sx = 2 + len(f"Mode: {mode_tag}") + 2
-    safe_addstr(win, sb_y, sx, f"Pos: {pos_tag}", cg(WHITE))
-    sx += len(f"Pos: {pos_tag}") + 2
-    safe_addstr(win, sb_y, sx, f"API: {key_str}", cg(GREEN if api_ok else YELLOW))
-    sx += len(f"API: {key_str}") + 2
-    safe_addstr(win, sb_y, sx, f"Bot: {bot_tag}", cg(bot_col) | curses.A_BOLD)
+    parts = [
+        (f"Mode: {mode_tag}", cg(mode_col) | curses.A_BOLD),
+        (f"Pos: {pos_tag}", cg(WHITE)),
+        (f"API: {key_str}", cg(GREEN if api_ok else YELLOW)),
+        (f"Bot: {bot_tag}", cg(bot_col) | curses.A_BOLD),
+    ]
+    full = "  ".join(p[0] for p in parts)
+    x = (max_x - len(full)) // 2
+    for text, color in parts:
+        safe_addstr(win, sb_y, x, text, color)
+        x += len(text) + 2
 
     btn_y = sb_y + 2
     if btn_y < max_y - 4:
