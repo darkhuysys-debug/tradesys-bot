@@ -64,7 +64,7 @@ _DESC = {
     "Uninstall_TradeSyS.desktop": "Desktop entry gỡ cài",
 }
 
-_HIDE = {"__pycache__", ".pyc", ".git", "backups", "updates"}
+_HIDE = {"__pycache__", ".pyc", ".git", "backups", "updates", "tradesys-pkg"}
 
 _NAME_W = 30
 _TAG_W = 5
