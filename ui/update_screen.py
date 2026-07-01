@@ -234,10 +234,10 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
 
     info_y = y0 + 1
     safe_addstr(win, info_y, 2, "Local: ", cg(WHITE))
-    safe_addstr(win, info_y, 8, f"v{local_ver}", cg(CYAN) | curses.A_BOLD)
+    safe_addstr(win, info_y, 8, local_ver, cg(CYAN) | curses.A_BOLD)
     safe_addstr(win, info_y, 8 + 6 + 1, " Remote: ", cg(WHITE))
     rv_color = GREEN if (remote_ver != "—" and remote_ver != local_ver) else DIM
-    safe_addstr(win, info_y, 8 + 6 + 1 + 8, f"v{remote_ver}", cg(rv_color))
+    safe_addstr(win, info_y, 8 + 6 + 1 + 8, remote_ver, cg(rv_color))
 
     if available and remote_ver > local_ver:
         safe_addstr(win, info_y, max_x - 16, "NEW!", cg(GREEN) | curses.A_BOLD)
@@ -328,8 +328,11 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
         if bx + 18 < max_x:
             w = draw_btn(win, btn_y, bx, "Scan Update", "UPDATE_SCAN", color=CYAN)
             bx += w + 2
-        if bx + 14 < max_x:
+        if bx + 20 < max_x:
             w = draw_btn(win, btn_y, bx, "File List", "UPDATE_FILELIST", color=YELLOW)
+            bx += w + 2
+        if bx + 14 < max_x:
+            w = draw_btn(win, btn_y, bx, "Guide", "UPDATE_GUIDE", color=CYAN)
             bx += w + 2
         if bx + 8 < max_x:
             w = draw_btn(win, btn_y, bx, "Back", "BACK", color=RED)
@@ -407,17 +410,19 @@ def draw_file_browser(win, state, max_y, max_x, y0):
     safe_addstr(win, info_y + 1, 2, f"Total: {total} items  |  Dirs: {dirs}  |  Python: {py_files}", cg(DIM))
     safe_addstr(win, info_y + 1, 2, "[↑↓] move  [R]refresh  [B]back", cg(DIM))
 
-    btn_y = max_y - 4
+    btn_y = max_y - 3
     bx = 2
+    if bx + 20 < max_x:
+        w = draw_btn(win, btn_y, bx, "Download & Install", "UPDATE_INSTALL", color=GREEN)
+        bx += w + 2
     if bx + 18 < max_x:
         w = draw_btn(win, btn_y, bx, "Scan Update", "UPDATE_SCAN", color=CYAN)
         bx += w + 2
     if bx + 20 < max_x:
-        w = draw_btn(win, btn_y, bx, "Update Manager", "UPDATE_SWITCH_UPDATE", color=GREEN)
+        w = draw_btn(win, btn_y, bx, "File List", "UPDATE_FILELIST", color=YELLOW)
         bx += w + 2
-    if bx + 10 < max_x:
-        w = draw_btn(win, btn_y, bx, "Guide", "UPDATE_GUIDE", color=CYAN)
-        bx += w + 2
+    if bx + 8 < max_x:
+        w = draw_btn(win, btn_y, bx, "Back", "BACK", color=RED)
     if bx + 8 < max_x:
         w = draw_btn(win, btn_y, bx, "Back", "BACK", color=RED)
 

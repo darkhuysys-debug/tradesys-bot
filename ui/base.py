@@ -191,14 +191,14 @@ def draw_theme_bar(win, max_y, max_x):
         x += len(txt) + 1
 
 TABS = [
-    ("F1 Overview",  "DASHBOARD"),
-    ("F2 Running",   "RUNNING"),
-    ("F3 Strategy",  "STRATEGY"),
-    ("F4 Logs",      "LOGS"),
-    ("F5 Mode/API",  "MODE_SELECT"),
-    ("F6 Symbols",   "SYMBOLS"),
-    ("F7 Alerts",    "ALERTS"),
-    ("F8 Update",    "UPDATE"),
+    ("F1 Dash",   "DASHBOARD"),
+    ("F2 Run",    "RUNNING"),
+    ("F3 Strat",  "STRATEGY"),
+    ("F4 Logs",   "LOGS"),
+    ("F5 Mode",   "MODE_SELECT"),
+    ("F6 Sym",    "SYMBOLS"),
+    ("F7 Alert",  "ALERTS"),
+    ("F8 Update", "UPDATE"),
 ]
 
 def draw_header(win, max_x, active_tab, state):
