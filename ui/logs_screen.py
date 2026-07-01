@@ -88,4 +88,7 @@ def draw_logs(win, state, scroll=0, log_filter="ALL"):
 
     hint = "↑↓ scroll  |  B=Back  Q=Menu  |  Filter click to filter"
     safe_addstr(win, max_y-2, max_x - len(hint) - 2, hint, cg(DIM))
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

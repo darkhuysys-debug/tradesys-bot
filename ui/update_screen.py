@@ -1,3 +1,4 @@
+from .colors import cg
 import curses
 import os
 from .base import draw_box, safe_addstr, draw_btn, reg, clear_clicks, cg, GREEN, RED, YELLOW, CYAN, WHITE, DIM
@@ -197,6 +198,9 @@ def draw_update_screen(win, state):
     else:
         draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, files, checking, error, progress, log, available, done, status.get("downloading", False))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()
 
 

@@ -356,4 +356,7 @@ def draw_symbols(win, state):
         "↑↓ nav  SPACE/Enter toggle active  A=add  D=del  S=select all  / search  B=back",
         cg(DIM))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

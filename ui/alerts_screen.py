@@ -182,4 +182,7 @@ def draw_alerts(win, state):
         "F1-F7 tabs  |  C=Clear  B=Back  Q=Quit",
         cg(DIM))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

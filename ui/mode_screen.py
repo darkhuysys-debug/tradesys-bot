@@ -113,6 +113,9 @@ def draw_mode_select(win, current_mode="demo", pos_mode="one-way"):
     safe_addstr(win, max_y-2, 2,
         "[D] Demo  [R] Real  [1] One-way  [2] Hedge  [Enter] Confirm  [B] Back",
         cg(GREEN))
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()
 
 
@@ -218,6 +221,9 @@ def draw_api_input(win, state, selected=0, editing=False, edit_buf="",
         safe_addstr(win, bb+1, bx+2,
             "Click field to enter  |  ↑↓ select  |  T test  |  S save  |  B back",
             cg(GREEN))
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()
 
 
@@ -442,4 +448,7 @@ def draw_mode_api_combined(win, current_mode, pos_mode,
     if api_editing:
         safe_addstr(win, max_y-1, 2, "Editing — Enter: done  |  Esc: cancel  |  Tab: next field", cg(YELLOW))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

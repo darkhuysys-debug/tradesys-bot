@@ -146,4 +146,7 @@ def draw_menu(win, menu_sel=0, hover_sel=-1):
     footer = f"Trade SyS {get_version()}  ·  Click để chọn  ·  [↑↓] di chuyển  [Q] đóng"
     safe_addstr(win, max_y - 2, (max_x - len(footer)) // 2, footer, cg(GREEN))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

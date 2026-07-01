@@ -183,4 +183,7 @@ def draw_running(win, state):
     foot = f"Signal: {state.signal} ({state.score})  |  Risk: {state.risk_per_trade}% / trade"
     safe_addstr(win, max_y-1, max_x - len(foot) - 2, foot, cg(GREEN))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()

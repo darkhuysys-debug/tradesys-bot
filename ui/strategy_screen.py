@@ -175,4 +175,7 @@ def draw_strategy(win, state, selected=0, editing=False, edit_buf=""):
             " Click field to edit  |  ↑↓ navigate  |  Enter to edit  |  S=Save  R=Reset  B=Back",
             cg(GREEN))
 
+    
+    from .base import draw_theme_bar
+    draw_theme_bar(win, max_y, max_x)
     win.refresh()
