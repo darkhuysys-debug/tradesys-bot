@@ -14,7 +14,7 @@ BOT_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BACKUP_DIR = os.path.join(BOT_DIR, "backups")
 UPDATE_DIR = os.path.join(BOT_DIR, "updates")
 GITHUB_API = "https://api.github.com"
-GITHUB_REPO = "darkhuysys-debug/tradesys-update"
+GITHUB_REPO = "darkhuysys-debug/tradesys-bot"
 
 _update_status = {
     "checking": False,
@@ -57,16 +57,18 @@ def _md5(filepath):
     return h.hexdigest()
 
 
-def _github_latest_release():
+def _github_latest_release_tag():
     url = f"{GITHUB_API}/repos/{GITHUB_REPO}/releases/latest"
     req = urllib.request.Request(url, headers={"Accept": "application/vnd.github.v3+json", "User-Agent": "TradeSys-Bot"})
     try:
         with urllib.request.urlopen(req, timeout=15) as resp:
             data = json.loads(resp.read().decode())
-            return data.get("tag_name", "").lstrip("v"), data.get("body", ""), data.get("html_url", ""), data
+            tag = data.get("tag_name", "").lstrip("v")
+            tarball = data.get("tarball_url", "")
+            return tag, tarball, data
     except Exception as e:
         _log(f"GitHub API error: {e}")
-        return None, None, None, None
+        return None, None, None
 
 
 def _download_file(url, dest):
@@ -78,13 +80,6 @@ def _download_file(url, dest):
                 if not chunk:
                     break
                 f.write(chunk)
-
-
-def _get_asset_url(release_data, filename):
-    for asset in release_data.get("assets", []):
-        if asset["name"] == filename:
-            return asset["browser_download_url"]
-    return None
 
 
 def check_update_async():
@@ -100,11 +95,11 @@ def check_update_async():
     def _check():
         try:
             local_ver = get_local_version()
-            remote_ver, notes, url, release_data = _github_latest_release()
+            remote_ver, tarball_url, release_data = _github_latest_release_tag()
             _update_status["local_version"] = local_ver
 
-            if not remote_ver:
-                _update_status["error"] = "Cannot reach GitHub API"
+            if not remote_ver or not tarball_url:
+                _update_status["error"] = "Cannot reach GitHub API or no releases found"
                 _log("Failed to fetch release info")
                 _update_status["checking"] = False
                 return
@@ -118,29 +113,10 @@ def check_update_async():
                 _update_status["checking"] = False
                 return
 
-            asset_name = f"TradeSys_update_v{remote_ver}.tar.gz"
-            asset_url = _get_asset_url(release_data, asset_name)
-            if not asset_url:
-                _update_status["error"] = f"Missing asset: {asset_name}"
-                _log(f"Asset not found in release")
-                _update_status["checking"] = False
-                return
-
-            _download_file(asset_url, os.path.join(UPDATE_DIR, "update.tar.gz"))
-            with tarfile.open(os.path.join(UPDATE_DIR, "update.tar.gz"), "r:gz") as tar:
-                for member in tar.getmembers():
-                    if member.name.endswith("version.json"):
-                        fobj = tar.extractfile(member)
-                        if fobj:
-                            meta = json.loads(fobj.read().decode())
-                            _update_status["files"] = meta.get("files", [])
-                            _update_status["available"] = True
-                            _log(f"Update available: v{remote_ver} ({len(meta.get('files', []))} files)")
-                            break
-                else:
-                    _update_status["files"] = []
-                    _update_status["available"] = True
-                    _log(f"Update available: v{remote_ver} (no manifest)")
+            _download_file(tarball_url, os.path.join(UPDATE_DIR, "update.tar.gz"))
+            _update_status["files"] = [{"path": "manifest (from tarball)", "type": "stable", "note": "full tarball"}]
+            _update_status["available"] = True
+            _log(f"Update available: v{remote_ver} (full tarball apply)")
 
             _update_status["error"] = None
         except Exception as e:
@@ -171,7 +147,7 @@ def install_update_async():
 
     files = _update_status.get("files", [])
     if not files:
-        _update_status["error"] = "No files to install"
+        _update_status["error"] = "No files to install. Please Scan Update first."
         return
 
     _update_status["downloading"] = True
@@ -188,9 +164,8 @@ def install_update_async():
     def _install():
         try:
             if not os.path.exists(tarball):
-                raise ValueError("Update tarball not found. Please re-download.")
+                raise ValueError("Update tarball not found. Please re-scan.")
 
-            # Step 1: Backup
             _log("Creating backup...")
             backup_name = f"v{get_local_version()}_{int(time.time())}"
             backup_path = os.path.join(BACKUP_DIR, backup_name)
@@ -207,11 +182,11 @@ def install_update_async():
                     shutil.copy2(src, dst)
             _log(f"Backup saved: {backup_name}")
 
-            # Step 2: Extract and apply files from tarball
             _log("Extracting update...")
             with tarfile.open(tarball, "r:gz") as tar:
-                for member in tar.getmembers():
-                    if member.name.endswith("version.json"):
+                members = [m for m in tar.getmembers() if not m.name.endswith(".git/") and not m.name.startswith(".git/")]
+                for idx, member in enumerate(members):
+                    if member.name in (".", "./"):
                         continue
                     dest = os.path.join(BOT_DIR, member.name)
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
@@ -220,25 +195,23 @@ def install_update_async():
                         with open(dest, "wb") as out:
                             out.write(fobj.read())
                         _log(f"Updated: {member.name}")
-                        _update_status["progress"] = int((tar.getmembers().index(member) + 1) / total * 100)
+                        _update_status["progress"] = int((idx + 1) / len(members) * 100)
 
-            # Step 3: Clean up any leftover nested wrapper from a bad update package
-            _log("Cleaning up old update artifacts...")
+            _log("Cleaning up old artifacts...")
             bad_dir = os.path.join(BOT_DIR, "tradesys-pkg")
             if os.path.isdir(bad_dir):
                 shutil.rmtree(bad_dir, ignore_errors=True)
                 _log(f"Removed bad directory: {bad_dir}")
 
-            # Step 4: Clear cache
+            _log("Clearing cache...")
             for root, dirs, files in os.walk(BOT_DIR):
                 for d in list(dirs):
                     if d == "__pycache__":
                         shutil.rmtree(os.path.join(root, d), ignore_errors=True)
                         dirs.remove(d)
 
-            # Step 4: Update VERSION
             with open(os.path.join(BOT_DIR, "VERSION"), "w") as f:
-                f.write("v" + remote_ver + "\n")
+                f.write("v" + remote_ver + "\\n")
 
             _update_status["progress"] = 100
             _update_status["done"] = True
