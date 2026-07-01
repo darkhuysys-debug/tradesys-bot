@@ -426,8 +426,6 @@ def draw_file_browser(win, state, max_y, max_x, y0):
         bx += w + 2
     if bx + 8 < max_x:
         w = draw_btn(win, btn_y, bx, "Back", "BACK", color=RED)
-    if bx + 8 < max_x:
-        w = draw_btn(win, btn_y, bx, "Back", "BACK", color=RED)
 
 
 _GUIDE_FILE_W = 16
