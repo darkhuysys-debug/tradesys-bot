@@ -14,3 +14,4 @@ config_local.py
 *~
 .DS_Store
 Thumbs.db
+version.json
