@@ -238,6 +238,7 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
     rv = remote_ver.lstrip("v")
     dv = remote_ver if remote_ver == local_ver else rv
     safe_addstr(win, info_y, 8, lv, cg(CYAN) | curses.A_BOLD)
+    rv_color = GREEN if (rv != lv) else DIM
     safe_addstr(win, info_y, 22, " Remote: ", cg(WHITE))
     safe_addstr(win, info_y, 30, rv, cg(rv_color))
 
