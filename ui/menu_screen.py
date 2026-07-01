@@ -57,21 +57,33 @@ def draw_menu(win, menu_sel=0, hover_sel=-1):
     tag = f"HUY \u00b7 {ver}"
     safe_addstr(win, ty, (max_x - len(tag)) // 2, tag, cg(GREEN) | curses.A_BOLD)
 
-    sb_y = ty + 1
-    mode_col = GREEN if mode_tag == "DEMO" else CYAN
-    parts = [
-        (f"Mode: {mode_tag}", cg(mode_col) | curses.A_BOLD),
+    sb_y = ty + 2
+    box_w = min(max_x - 4, 60)
+    bx = (max_x - box_w) // 2
+    for bx_off in range(box_w):
+        safe_addstr(win, sb_y, bx + bx_off, "─", cg(GREEN))
+    safe_addstr(win, sb_y, bx, "┌", cg(GREEN))
+    safe_addstr(win, sb_y, bx + box_w - 1, "┐", cg(GREEN))
+
+    content = [
+        (f"Mode: {mode_tag}", cg(GREEN if mode_tag == "DEMO" else CYAN) | curses.A_BOLD),
         (f"Pos: {pos_tag}", cg(WHITE)),
         (f"API: {key_str}", cg(GREEN if api_ok else YELLOW)),
         (f"Bot: {bot_tag}", cg(bot_col) | curses.A_BOLD),
     ]
-    full = "  ".join(p[0] for p in parts)
-    x = (max_x - len(full)) // 2
-    for text, color in parts:
-        safe_addstr(win, sb_y, x, text, color)
-        x += len(text) + 2
+    gap = (box_w - 2 - sum(len(c[0]) for c in content)) // max(len(content) - 1, 1)
+    cx = bx + 1
+    for text, color in content:
+        safe_addstr(win, sb_y, cx, text, color)
+        cx += len(text) + gap
 
-    btn_y = sb_y + 2
+    sb_y2 = sb_y + 1
+    for bx_off in range(box_w):
+        safe_addstr(win, sb_y2, bx + bx_off, "─", cg(GREEN))
+    safe_addstr(win, sb_y2, bx, "└", cg(GREEN))
+    safe_addstr(win, sb_y2, bx + box_w - 1, "┘", cg(GREEN))
+
+    btn_y = sb_y2 + 2
     if btn_y < max_y - 4:
         w = draw_btn(win, btn_y, (max_x - 18) // 2, "BOOT SYSTEM", "DASHBOARD", color=GREEN, highlight=True)
 

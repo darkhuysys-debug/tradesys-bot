@@ -234,12 +234,14 @@ def draw_update_manager(win, state, max_y, max_x, y0, local_ver, remote_ver, fil
 
     info_y = y0 + 1
     safe_addstr(win, info_y, 2, "Local: ", cg(WHITE))
-    rv_label_x = 22
-    safe_addstr(win, info_y, 8, local_ver[:rv_label_x - 18], cg(CYAN) | curses.A_BOLD)
-    safe_addstr(win, info_y, rv_label_x, " Remote: ", cg(WHITE))
-    safe_addstr(win, info_y, rv_label_x + 8, remote_ver, cg(rv_color))
+    lv = local_ver.lstrip("v")
+    rv = remote_ver.lstrip("v")
+    dv = remote_ver if remote_ver == local_ver else rv
+    safe_addstr(win, info_y, 8, lv, cg(CYAN) | curses.A_BOLD)
+    safe_addstr(win, info_y, 22, " Remote: ", cg(WHITE))
+    safe_addstr(win, info_y, 30, rv, cg(rv_color))
 
-    if available and remote_ver > local_ver:
+    if available and rv > lv:
         safe_addstr(win, info_y, max_x - 16, "NEW!", cg(GREEN) | curses.A_BOLD)
 
     list_y = info_y + 2
