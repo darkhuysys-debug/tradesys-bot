@@ -13,9 +13,9 @@ def draw_running(win, state):
     y0 = 3
 
     sc = GREEN if state.status == "RUNNING" else RED
-    status_attr = cg(sc) | curses.A_BOLD
+    status_attr = cg(sc) | curses.A_BOLD | curses.A_BLINK
     if state.status == "RUNNING" and not heartbeat_on():
-        status_attr = cg(sc)
+        status_attr = cg(sc) | curses.A_BLINK
 
     safe_addstr(win, y0, 2,  "STATUS:",    cg(WHITE))
     safe_addstr(win, y0, 10, state.status, status_attr)
