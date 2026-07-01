@@ -222,8 +222,14 @@ def install_update_async():
                         _log(f"Updated: {member.name}")
                         _update_status["progress"] = int((tar.getmembers().index(member) + 1) / total * 100)
 
-            # Step 3: Clear cache
-            _log("Clearing cache...")
+            # Step 3: Clean up any leftover nested wrapper from a bad update package
+            _log("Cleaning up old update artifacts...")
+            bad_dir = os.path.join(BOT_DIR, "tradesys-pkg")
+            if os.path.isdir(bad_dir):
+                shutil.rmtree(bad_dir, ignore_errors=True)
+                _log(f"Removed bad directory: {bad_dir}")
+
+            # Step 4: Clear cache
             for root, dirs, files in os.walk(BOT_DIR):
                 for d in list(dirs):
                     if d == "__pycache__":
