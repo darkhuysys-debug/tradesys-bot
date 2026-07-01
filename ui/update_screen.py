@@ -411,7 +411,7 @@ def draw_file_browser(win, state, max_y, max_x, y0):
     py_files = sum(1 for r in file_rows if r.get("ext") == "PY")
     safe_addstr(win, info_y, 0, "─" * max(1, max_x), cg(CYAN))
     safe_addstr(win, info_y + 1, 2, f"Total: {total} items  |  Dirs: {dirs}  |  Python: {py_files}", cg(DIM))
-    safe_addstr(win, info_y + 1, 2, "[↑↓] move  [R]refresh  [B]back", cg(DIM))
+    safe_addstr(win, info_y + 2, 2, "[↑↓] move  [R]refresh  [B]back", cg(DIM))
 
     btn_y = max_y - 3
     bx = 2
