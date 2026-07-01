@@ -82,6 +82,13 @@ def _download_file(url, dest):
                 f.write(chunk)
 
 
+def _strip_top_dir(member_name):
+    parts = member_name.split("/", 1)
+    if len(parts) == 2:
+        return parts[1]
+    return member_name
+
+
 def check_update_async():
     if _update_status["checking"]:
         return
@@ -114,9 +121,9 @@ def check_update_async():
                 return
 
             _download_file(tarball_url, os.path.join(UPDATE_DIR, "update.tar.gz"))
-            _update_status["files"] = [{"path": "manifest (from tarball)", "type": "stable", "note": "full tarball"}]
+            _update_status["files"] = [{"path": "full tarball", "type": "stable", "note": "all files"}]
             _update_status["available"] = True
-            _log(f"Update available: v{remote_ver} (full tarball apply)")
+            _log(f"Update available: v{remote_ver} (ready to install)")
 
             _update_status["error"] = None
         except Exception as e:
@@ -184,18 +191,23 @@ def install_update_async():
 
             _log("Extracting update...")
             with tarfile.open(tarball, "r:gz") as tar:
-                members = [m for m in tar.getmembers() if not m.name.endswith(".git/") and not m.name.startswith(".git/")]
+                members = [m for m in tar.getmembers()
+                           if not m.name.endswith(".git/") and not m.name.startswith(".git/")]
                 for idx, member in enumerate(members):
-                    if member.name in (".", "./"):
+                    rel = _strip_top_dir(member.name)
+                    if not rel or rel in (".", "/"):
                         continue
-                    dest = os.path.join(BOT_DIR, member.name)
+                    dest = os.path.join(BOT_DIR, rel)
                     os.makedirs(os.path.dirname(dest), exist_ok=True)
-                    fobj = tar.extractfile(member)
-                    if fobj:
-                        with open(dest, "wb") as out:
-                            out.write(fobj.read())
-                        _log(f"Updated: {member.name}")
-                        _update_status["progress"] = int((idx + 1) / len(members) * 100)
+                    if member.isfile():
+                        fobj = tar.extractfile(member)
+                        if fobj:
+                            with open(dest, "wb") as out:
+                                out.write(fobj.read())
+                            _log(f"Updated: {rel}")
+                    else:
+                        os.makedirs(dest, exist_ok=True)
+                    _update_status["progress"] = int((idx + 1) / len(members) * 100)
 
             _log("Cleaning up old artifacts...")
             bad_dir = os.path.join(BOT_DIR, "tradesys-pkg")
