@@ -547,7 +547,10 @@ def main(stdscr):
         if   action == "EXIT":   break
         elif action == "BACK":
             if screen == SCREEN_UPDATE:
-                state.f8_mode = "update"
+                if getattr(state, "f8_mode", "update") != "update":
+                    state.f8_mode = "update"
+                else:
+                    go_back()
             else:
                 go_back()
 
