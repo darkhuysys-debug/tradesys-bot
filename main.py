@@ -205,6 +205,8 @@ def main(stdscr):
                 draw_running(stdscr, state)
             elif screen in (SCREEN_MODE_SELECT, SCREEN_API_INPUT):
                 draw_mode_api_combined(stdscr, mode_tmp, pos_mode_tmp,
+                                       getattr(state, "exchange", "bybit"),
+                                       getattr(state, "okx_market", "futures"),
                                        api_sel, api_editing, api_buf,
                                        api_status, api_status_ok, api_testing,
                                        email_status, email_status_ok, email_testing)
