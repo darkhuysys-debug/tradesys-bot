@@ -7,13 +7,20 @@ class BotState:
         self._lock = threading.Lock()
         # Mode: "demo" or "real"
         self.mode = "demo"
-        # Bybit credentials (real mode)
+        # Exchange: "bybit" or "okx"
+        self.exchange = "bybit"
+        # Bybit credentials
         self.bybit_api_key      = ""
         self.bybit_api_secret   = ""
         self.bybit_connected    = False
+        # OKX credentials
+        self.okx_api_key      = ""
+        self.okx_api_secret   = ""
+        self.okx_market       = "futures"
+        self.okx_connected    = False
         self.telegram_bot_token = ""
         self.telegram_chat_id   = ""
-        self.bybit_error      = ""
+        self.bybit_error        = ""
         # Bot
         self.status       = "STOPPED"
         self.pid          = 0
@@ -160,7 +167,3 @@ class BotState:
         return None
 
 state = BotState()
-
-# (appended by update) Symbol watchlist fields
-# These are initialised by the symbols_screen on first use so we keep them
-# as None here to avoid import-order issues.
