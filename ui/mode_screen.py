@@ -252,7 +252,7 @@ def draw_api_input(win, state, selected=0, editing=False, edit_buf="",
 # Combined F5 screen: Mode Select (left) + API Settings (right)
 # Matches HTML layout exactly.
 # ─────────────────────────────────────────────────────────────────────────────
-def draw_mode_api_combined(win, current_mode, pos_mode,
+def draw_mode_api_combined(win, current_mode, pos_mode, exchange="bybit", okx_market="futures",
                            api_sel=0, api_editing=False, api_buf="",
                            api_status="", api_status_ok=True, api_testing=False,
                            email_status="", email_status_ok=True, email_testing=False):
@@ -269,8 +269,16 @@ def draw_mode_api_combined(win, current_mode, pos_mode,
     # ══════════════ LEFT PANEL: TRADING MODE ══════════════
     lw = half - 1
 
+    # ── Exchange selection
+    safe_addstr(win, y0, 2, "EXCHANGE", cg(DIM) | curses.A_BOLD)
+    safe_addstr(win, y0, 2 + 10, "[BYBIT]" + ("  ✔" if exchange == "bybit" else "") + "     [OKX]" + ("  ✔" if exchange == "okx" else ""), cg(GREEN if exchange == "bybit" else CYAN) | curses.A_BOLD)
+    if exchange == "okx":
+        safe_addstr(win, y0+1, 2, f"OKX Market: [FUTURES]" + ("  ✔" if okx_market == "futures" else "") + "     [SPOT]" + ("  ✔" if okx_market == "spot" else ""), cg(YELLOW) | curses.A_BOLD)
+    else:
+        safe_addstr(win, y0+1, 2, " " * (lw - 2), cg(DIM))
+
     # ── Account mode title
-    safe_addstr(win, y0, 2, "ACCOUNT MODE", cg(DIM) | curses.A_BOLD)
+    safe_addstr(win, y0 + 2, 2, "ACCOUNT MODE", cg(DIM) | curses.A_BOLD)
 
     cw = (lw - 3) // 2
     ch = 7
@@ -280,7 +288,7 @@ def draw_mode_api_combined(win, current_mode, pos_mode,
 
     # Demo box
     demo_title = "[ D ] DEMO MODE" + (" ✔" if hl_demo else "")
-    draw_box(win, y0+1, 1, ch, cw, demo_title, GREEN if hl_demo else DIM)
+    draw_box(win, y0+3, 1, ch, cw, demo_title, GREEN if hl_demo else DIM)
     demo_lines = [
         "✔ Bybit demo account",
         "✔ Live market data",
@@ -290,14 +298,14 @@ def draw_mode_api_combined(win, current_mode, pos_mode,
     ]
     for i, line in enumerate(demo_lines):
         attr = cg(GREEN) | curses.A_BOLD if hl_demo else cg(DIM)
-        safe_addstr(win, y0+2+i, 3, line[:cw-3], attr)
-    for row in range(y0+1, y0+1+ch):
+        safe_addstr(win, y0+4+i, 3, line[:cw-3], attr)
+    for row in range(y0+3, y0+3+ch):
         reg(row, 1, 1+cw-1, "MODE_DEMO")
 
     # Real box
     real_title = "[ R ] REAL MODE" + (" ✔" if hl_real else "")
     rx = 1 + cw + 1
-    draw_box(win, y0+1, rx, ch, cw, real_title, CYAN if hl_real else DIM)
+    draw_box(win, y0+3, rx, ch, cw, real_title, CYAN if hl_real else DIM)
     real_lines = [
         "✔ Bybit mainnet",
         "✔ Real orders",
@@ -307,12 +315,12 @@ def draw_mode_api_combined(win, current_mode, pos_mode,
     ]
     for i, line in enumerate(real_lines):
         attr = cg(CYAN) | curses.A_BOLD if hl_real else cg(DIM)
-        safe_addstr(win, y0+2+i, rx+2, line[:cw-3], attr)
-    for row in range(y0+1, y0+1+ch):
+        safe_addstr(win, y0+4+i, rx+2, line[:cw-3], attr)
+    for row in range(y0+3, y0+3+ch):
         reg(row, rx, rx+cw-1, "MODE_REAL")
 
     # ── Position mode title
-    pm_y = y0 + 1 + ch + 1
+    pm_y = y0 + 3 + ch + 1
     safe_addstr(win, pm_y, 2, "POSITION MODE", cg(DIM) | curses.A_BOLD)
 
     ph = 6
