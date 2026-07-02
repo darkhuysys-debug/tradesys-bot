@@ -19,7 +19,7 @@ from ui.dashboard import draw_dashboard
 from ui.logs_screen import draw_logs
 from ui.strategy_screen import draw_strategy, FIELDS
 from ui.running_screen import draw_running
-from ui.mode_screen import draw_mode_select, draw_api_input, draw_mode_api_combined, APIFIELDS, _ensure_api_state
+from ui.mode_screen import draw_mode_select, draw_api_input, draw_mode_api_combined, APIFIELDS, _ensure_api_state, EXCHANGES, OKX_MARKETS
 from ui.symbols_screen import draw_symbols, start_watchlist_fetcher, stop_watchlist_fetcher
 from ui.alerts_screen import draw_alerts, push_alert, _ensure_alerts
 from ui.update_screen import draw_update_screen, _GUIDE_ROWS
@@ -37,15 +37,27 @@ SCREEN_UPDATE      = "update"
 
 def load_accounts(cfg):
     state.accounts = []
-    key = state.bybit_api_key
-    if key:
-        masked = key[:4] + "***" + key[-4:] if len(key) > 8 else key
-        state.accounts.append({
-            "exchange":  "Bybit",
-            "api_key":   masked,
-            "balance":   state.equity,
-            "connected": state.bybit_connected or state.mode == "demo",
-        })
+    if getattr(state, "exchange", "bybit") == "okx":
+        key = state.okx_api_key
+        if key:
+            masked = key[:4] + "***" + key[-4:] if len(key) > 8 else key
+            state.accounts.append({
+                "exchange":  "OKX",
+                "api_key":   masked,
+                "balance":   state.equity,
+                "connected": state.okx_connected or state.mode == "demo",
+                "market":    getattr(state, "okx_market", "futures"),
+            })
+    else:
+        key = state.bybit_api_key
+        if key:
+            masked = key[:4] + "***" + key[-4:] if len(key) > 8 else key
+            state.accounts.append({
+                "exchange":  "Bybit",
+                "api_key":   masked,
+                "balance":   state.equity,
+                "connected": state.bybit_connected or state.mode == "demo",
+            })
 
 def _do_email_test(state, result_holder):
     try:
@@ -79,10 +91,14 @@ def _do_email_test(state, result_holder):
         result_holder["ok"]   = False
         result_holder["msg"]  = str(e)
 
-def _do_api_test(api_key, api_secret, result_holder, demo=True):
+def _do_api_test(api_key, api_secret, result_holder, demo=True, exchange="bybit", okx_market="futures"):
     try:
-        from bot.bybit_api import test_connection
-        ok, msg = test_connection(api_key, api_secret, demo=demo)
+        from bot.bybit_api import test_connection as bybit_test
+        from bot.okx_api import test_connection as okx_test
+        if exchange == "okx":
+            ok, msg = okx_test(api_key, api_secret, market=okx_market)
+        else:
+            ok, msg = bybit_test(api_key, api_secret, demo=demo)
         result_holder["done"] = True
         result_holder["ok"]   = ok
         result_holder["msg"]  = msg
@@ -103,7 +119,7 @@ def main(stdscr):
     apply_config_to_state(cfg, state)
     load_accounts(cfg)
     # Start price fetcher if already connected from saved config
-    if state.bybit_connected or state.mode == "demo":
+    if (getattr(state, "bybit_connected", False) or getattr(state, "okx_connected", False) or state.mode == "demo"):
         from ui.symbols_screen import _ensure_state as _sym_ensure, start_watchlist_fetcher as _swf
         _sym_ensure(state)
         _swf(state)
@@ -157,9 +173,12 @@ def main(stdscr):
             api_testing          = False
             api_status_ok        = api_test_res["ok"]
             api_status           = api_test_res["msg"]
-            state.bybit_connected = api_test_res["ok"]
+            if getattr(state, "exchange", "bybit") == "okx":
+                state.okx_connected = api_test_res["ok"]
+            else:
+                state.bybit_connected = api_test_res["ok"]
             load_accounts(cfg)
-            if state.bybit_connected:
+            if api_test_res["ok"]:
                 from ui.symbols_screen import _ensure_state as _sym_ensure
                 _sym_ensure(state)
                 start_watchlist_fetcher(state)
@@ -364,6 +383,8 @@ def main(stdscr):
                 elif key == ord('2'): action = "POS_HEDGE"
                 elif key in (ord('d'), ord('D')): action = "MODE_DEMO"
                 elif key in (ord('r'), ord('R')): action = "MODE_REAL"
+                elif key in (ord('o'), ord('O')): action = "EXCHANGE_OKX"
+                elif key in (ord('b'), ord('B')): action = "EXCHANGE_BYBIT" 
 
             elif screen in (SCREEN_API_INPUT, SCREEN_MODE_SELECT):
                 if key == curses.KEY_UP:     api_sel = max(0, api_sel-1)
