@@ -7,7 +7,7 @@ from state import state
 from .base import draw_box, safe_addstr, draw_btn, reg, clear_clicks, get_version, spinner_char, draw_header
 from .colors import cg, GREEN, RED, YELLOW, CYAN, WHITE, DIM
 
-def draw_mode_select(win, current_mode="demo", pos_mode="one-way"):
+def draw_mode_select(win, current_mode="demo", pos_mode="one-way", exchange="bybit", okx_market="futures"):
     clear_clicks()
     win.erase()
     max_y, max_x = win.getmaxyx()
@@ -24,6 +24,15 @@ def draw_mode_select(win, current_mode="demo", pos_mode="one-way"):
 
     hl_demo = current_mode == "demo"
     hl_real = current_mode == "real"
+
+    safe_addstr(win, dy - 1, dx, "── EXCHANGE ──────────────────────────────────────", cg(DIM) | curses.A_BOLD)
+    ex_w = max_x - 4
+    ex_x = (max_x - ex_w) // 2
+    safe_addstr(win, dy - 1, ex_x, f" Exchange: [BYBIT]" + ("  ✔" if exchange == "bybit" else "") + "     [OKX]" + ("  ✔" if exchange == "okx" else ""), cg(GREEN if exchange == "bybit" else CYAN) | curses.A_BOLD)
+    if exchange == "okx":
+        safe_addstr(win, dy, ex_x, f" OKX Market: [FUTURES]" + ("  ✔" if okx_market == "futures" else "") + "     [SPOT]" + ("  ✔" if okx_market == "spot" else ""), cg(YELLOW if okx_market == "futures" else YELLOW) | curses.A_BOLD)
+    else:
+        safe_addstr(win, dy, ex_x, " " * ex_w, cg(DIM))
 
     draw_box(win, dy, dx, ch, cw, "[ D ]  DEMO MODE" + ("  ✔" if hl_demo else ""), GREEN if hl_demo else WHITE)
     for i, line in enumerate([
@@ -111,7 +120,7 @@ def draw_mode_select(win, current_mode="demo", pos_mode="one-way"):
     safe_addstr(win, by + 1, pm_x + 16, pos_mode.upper(), cg(pm_col) | curses.A_BOLD)
 
     safe_addstr(win, max_y-2, 2,
-        "[D] Demo  [R] Real  [1] One-way  [2] Hedge  [Enter] Confirm  [B] Back",
+        "[D] Demo  [R] Real  [O] OKX  [B] Bybit  [1] One-way  [2] Hedge  [Enter] Confirm  [ESC] Back",
         cg(GREEN))
     
     from .base import draw_theme_bar
