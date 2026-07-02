@@ -16,7 +16,8 @@ from bot.regime import detect_regime
 
 def _demo_loop(stop_event: threading.Event):
     """Demo loop — uses real Bybit public market data, no real trades."""
-    from bot.bybit_api import get_ticker, get_klines, get_wallet_balance, get_positions
+    from bot.bybit_api import get_ticker as bybit_get_ticker, get_klines as bybit_get_klines, get_wallet_balance as bybit_get_wallet_balance, get_positions as bybit_get_positions
+    from bot.okx_api import get_ticker as okx_get_ticker, get_klines as okx_get_klines, get_wallet_balance as okx_get_wallet_balance, get_positions as okx_get_positions
     symbol = state.pair.replace("/", "")
     timeframe_map = {"1m": "1", "3m": "3", "5m": "5", "15m": "15",
                      "30m": "30", "1h": "60", "2h": "120", "4h": "240"}
@@ -28,9 +29,14 @@ def _demo_loop(stop_event: threading.Event):
     state.add_log(f"[DEMO] Strategy loaded: {state.strategy}")
     state.add_log("[DEMO] Starting demo loop (Bybit demo account)...")
 
+    exchange = getattr(state, "exchange", "bybit")
     try:
-        ticker = get_ticker(symbol, demo=True)
-        klines = get_klines(symbol, interval=tf, limit=50, demo=True)
+        if exchange == "okx":
+            ticker = okx_get_ticker(symbol, market=getattr(state, "okx_market", "futures"))
+            klines = okx_get_klines(symbol, interval=tf, limit=50, market=getattr(state, "okx_market", "futures"))
+        else:
+            ticker = bybit_get_ticker(symbol, demo=True)
+            klines = bybit_get_klines(symbol, interval=tf, limit=50, demo=True)
     except Exception as e:
         state.add_log(f"[DEMO] Failed to load market data: {e}", "ERROR")
         state.status = "DATA ERROR"
@@ -60,7 +66,10 @@ def _demo_loop(stop_event: threading.Event):
     while not stop_event.is_set():
         tick += 1
         try:
-            ticker = get_ticker(symbol, demo=True)
+            if exchange == "okx":
+                ticker = okx_get_ticker(symbol, market=getattr(state, "okx_market", "futures"))
+            else:
+                ticker = bybit_get_ticker(symbol, demo=True)
             state.market_price     = ticker["price"]
             state.market_change_24h = ticker["change24h"]
             state.market_high_24h   = ticker["high24h"]
@@ -70,7 +79,10 @@ def _demo_loop(stop_event: threading.Event):
             state.add_log(f"[DEMO] Ticker error: {e}", "WARN")
 
         try:
-            klines = get_klines(symbol, interval=tf, limit=50, demo=True)
+            if exchange == "okx":
+                klines = okx_get_klines(symbol, interval=tf, limit=50, market=getattr(state, "okx_market", "futures"))
+            else:
+                klines = bybit_get_klines(symbol, interval=tf, limit=50, demo=True)
             if len(klines) > 20:
                 ind = get_indicators(klines,
                                      rsi_period=state.rsi_period,
@@ -145,7 +157,10 @@ def _demo_loop(stop_event: threading.Event):
             state.add_log(f"[DEMO] Indicator error: {e}", "WARN")
 
         try:
-            api_positions = get_positions(state.bybit_api_key, state.bybit_api_secret, symbol, demo=True)
+            if exchange == "okx":
+                api_positions = okx_get_positions(state.okx_api_key, state.okx_api_secret, symbol, market=getattr(state, "okx_market", "futures"))
+            else:
+                api_positions = bybit_get_positions(state.bybit_api_key, state.bybit_api_secret, symbol, demo=True)
             api_positions = [p for p in api_positions if p.get("size", 0) > 0]
             state.positions = api_positions
             total_pnl = sum(p["pnl_usdt"] for p in state.positions)
@@ -168,15 +183,20 @@ def _demo_loop(stop_event: threading.Event):
 
 def _real_loop(stop_event: threading.Event):
     """Live Bybit data loop with real trading."""
-    from bot.bybit_api import get_ticker, get_wallet_balance, get_positions, get_klines
+    from bot.bybit_api import get_ticker as bybit_get_ticker, get_wallet_balance as bybit_get_wallet_balance, get_positions as bybit_get_positions, get_klines as bybit_get_klines
+    from bot.okx_api import get_ticker as okx_get_ticker, get_wallet_balance as okx_get_wallet_balance, get_positions as okx_get_positions, get_klines as okx_get_klines
     api_key    = state.bybit_api_key
     api_secret = state.bybit_api_secret
     symbol     = state.pair.replace("/", "")
     demo = state.mode == "demo"
     state.add_log(f"[{'DEMO' if demo else 'REAL'}] Bot initialized — connecting to Bybit...")
 
+    exchange = getattr(state, "exchange", "bybit")
     try:
-        bal = get_wallet_balance(api_key, api_secret, demo=demo)
+        if exchange == "okx":
+            bal = okx_get_wallet_balance(api_key, api_secret, market=getattr(state, "okx_market", "futures"))
+        else:
+            bal = bybit_get_wallet_balance(api_key, api_secret, demo=demo)
         state.add_log(f"[REAL] Wallet balance: {bal:.2f} USDT")
         if state.accounts:
             state.accounts[0]["balance"] = bal
@@ -196,7 +216,10 @@ def _real_loop(stop_event: threading.Event):
     while not stop_event.is_set():
         tick += 1
         try:
-            ticker = get_ticker(symbol, demo=demo)
+            if exchange == "okx":
+                ticker = okx_get_ticker(symbol, market=getattr(state, "okx_market", "futures"))
+            else:
+                ticker = bybit_get_ticker(symbol, demo=demo)
             state.market_price     = ticker["price"]
             state.market_change_24h = ticker["change24h"]
             state.market_high_24h   = ticker["high24h"]
@@ -210,7 +233,10 @@ def _real_loop(stop_event: threading.Event):
 
         # Fetch klines + indicators every tick
         try:
-            klines = get_klines(symbol, interval=tf, limit=50, demo=demo)
+            if exchange == "okx":
+                klines = okx_get_klines(symbol, interval=tf, limit=50, market=getattr(state, "okx_market", "futures"))
+            else:
+                klines = bybit_get_klines(symbol, interval=tf, limit=50, demo=demo)
             if len(klines) > 20:
                 ind = get_indicators(klines,
                                      rsi_period=state.rsi_period,
@@ -287,8 +313,10 @@ def _real_loop(stop_event: threading.Event):
         # Refresh positions every 3s
         if tick % 3 == 0:
             try:
-                from bot.bybit_api import get_positions as _get_positions
-                positions = _get_positions(state.bybit_api_key, state.bybit_api_secret, symbol, demo=demo)
+                if exchange == "okx":
+                    positions = okx_get_positions(state.okx_api_key, state.okx_api_secret, symbol, market=getattr(state, "okx_market", "futures"))
+                else:
+                    positions = bybit_get_positions(state.bybit_api_key, state.bybit_api_secret, symbol, demo=demo)
                 positions = [p for p in positions if abs(float(p.get("size", 0) or 0)) > 1e-9]
                 for p in positions:
                     if "pnl_usdt" not in p:
