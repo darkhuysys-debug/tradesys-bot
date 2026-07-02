@@ -7,8 +7,12 @@ HISTORY_FILE = os.path.join(CONFIG_DIR, "trade_history.json")
 
 DEFAULT_CONFIG = {
     "mode": "demo",
+    "exchange": "bybit",
     "bybit_api_key":    "",
     "bybit_api_secret": "",
+    "okx_api_key":      "",
+    "okx_api_secret":   "",
+    "okx_market": "futures",
     "telegram_bot_token": "",
     "telegram_chat_id":  "",
     "sendgrid_api_key": "",
@@ -80,8 +84,12 @@ def save_trade_history(trades: list):
 
 def apply_config_to_state(cfg: dict, state):
     state.mode             = cfg.get("mode", "demo")
-    state.bybit_api_key      = cfg.get("bybit_api_key", "")
-    state.bybit_api_secret   = cfg.get("bybit_api_secret", "")
+    state.exchange         = cfg.get("exchange", "bybit")
+    state.bybit_api_key    = cfg.get("bybit_api_key", "")
+    state.bybit_api_secret = cfg.get("bybit_api_secret", "")
+    state.okx_api_key      = cfg.get("okx_api_key", "")
+    state.okx_api_secret   = cfg.get("okx_api_secret", "")
+    state.okx_market       = cfg.get("okx_market", "futures")
     state.telegram_bot_token = cfg.get("telegram_bot_token", "")
     state.telegram_chat_id   = cfg.get("telegram_chat_id", "")
     state.sendgrid_api_key    = cfg.get("sendgrid_api_key", "")
