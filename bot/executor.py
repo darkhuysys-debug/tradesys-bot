@@ -29,7 +29,6 @@ def execute_signal(state, signal: str, score: int, price: float):
         return False
 
     demo = state.mode == "demo"
-    set_leverage(state.bybit_api_key, state.bybit_api_secret, symbol, state.leverage, demo=demo)
 
     sl_price = None
     tp_price = None
@@ -38,24 +37,41 @@ def execute_signal(state, signal: str, score: int, price: float):
     if state.take_profit > 0:
         tp_price = price * (1 + state.take_profit / 100) if signal == "BUY" else price * (1 - state.take_profit / 100)
 
-    position_idx = None
-    if state.position_mode == "hedge":
-        position_idx = 0 if signal == "BUY" else 1
-
-    # ── Partial TP ───────────────────────────────────────────────────────────
-    partial_size = None
-    partial_tp_price = None
-    if getattr(state, 'partial_tp_enabled', False) and state.take_profit > 0:
-        partial_size = size * getattr(state, 'partial_tp_pct', 50.0) / 100.0
-        partial_tp_pct = getattr(state, 'partial_tp1_pct', 1.0)
-        if signal == "BUY":
-            partial_tp_price = price * (1 + partial_tp_pct / 100)
-        else:
-            partial_tp_price = price * (1 - partial_tp_pct / 100)
-
-    result = place_order(state.bybit_api_key, state.bybit_api_secret, symbol, side, size,
-                         take_profit=tp_price, stop_loss=sl_price,
-                         position_idx=position_idx, demo=demo)
+    if exchange == "okx":
+        from bot.okx_api import place_order as okx_place_order, set_leverage as okx_set_leverage
+        okx_market = getattr(state, "okx_market", "futures")
+        okx_set_leverage(state.okx_api_key, state.okx_api_secret, symbol, state.leverage, market=okx_market)
+        position_idx = None
+        partial_size = None
+        partial_tp_price = None
+        if getattr(state, 'partial_tp_enabled', False) and state.take_profit > 0:
+            partial_size = size * getattr(state, 'partial_tp_pct', 50.0) / 100.0
+            partial_tp_pct = getattr(state, 'partial_tp1_pct', 1.0)
+            if signal == "BUY":
+                partial_tp_price = price * (1 + partial_tp_pct / 100)
+            else:
+                partial_tp_price = price * (1 - partial_tp_pct / 100)
+        result = okx_place_order(state.okx_api_key, state.okx_api_secret, symbol, side, size,
+                                 take_profit=tp_price, stop_loss=sl_price,
+                                 market=okx_market)
+    else:
+        from bot.bybit_api import place_order, set_leverage
+        set_leverage(state.bybit_api_key, state.bybit_api_secret, symbol, state.leverage, demo=demo)
+        position_idx = None
+        if state.position_mode == "hedge":
+            position_idx = 0 if signal == "BUY" else 1
+        partial_size = None
+        partial_tp_price = None
+        if getattr(state, 'partial_tp_enabled', False) and state.take_profit > 0:
+            partial_size = size * getattr(state, 'partial_tp_pct', 50.0) / 100.0
+            partial_tp_pct = getattr(state, 'partial_tp1_pct', 1.0)
+            if signal == "BUY":
+                partial_tp_price = price * (1 + partial_tp_pct / 100)
+            else:
+                partial_tp_price = price * (1 - partial_tp_pct / 100)
+        result = place_order(state.bybit_api_key, state.bybit_api_secret, symbol, side, size,
+                             take_profit=tp_price, stop_loss=sl_price,
+                             position_idx=position_idx, demo=demo)
     if "error" in result:
         err = result["error"]
         if "position idx" in err.lower() or "position mode" in err.lower():
@@ -103,7 +119,30 @@ def execute_signal(state, signal: str, score: int, price: float):
     return True
 
 def close_position(state, position: dict):
-    """Close a position via Bybit API."""
+    """Close a position via Bybit/OKX API."""
+    exchange = getattr(state, "exchange", "bybit")
+    demo = state.mode == "demo"
+
+    if exchange == "okx":
+        from bot.okx_api import place_order
+        symbol = position["symbol"].replace("/", "")
+        side = "Sell" if position["side"] == "LONG" else "Buy"
+        size = position.get("size", 0)
+        if size <= 0:
+            state.trade_cooldown_until = 0.0
+            return True
+        okx_market = getattr(state, "okx_market", "futures")
+        result = place_order(state.okx_api_key, state.okx_api_secret, symbol, side, size,
+                             reduce_only=True, market=okx_market)
+        if "error" in result:
+            state.add_log(f"[ERROR] Close failed: {result['error']}", "ERROR")
+            return False
+        prefix = "[DEMO]" if demo else "[REAL]"
+        state.add_log(f"{prefix} Close {position['side']} {position['symbol']}")
+        state.trade_cooldown_until = 0.0
+        return True
+
+    # Default: Bybit
     if not state.get_main_account():
         return False
 
@@ -122,7 +161,6 @@ def close_position(state, position: dict):
         return True
 
     position_idx = position.get("position_idx", 0)
-    demo = state.mode == "demo"
     result = place_order(state.bybit_api_key, state.bybit_api_secret,
                          symbol, side, size,
                          reduce_only=True, position_idx=position_idx, demo=demo)
