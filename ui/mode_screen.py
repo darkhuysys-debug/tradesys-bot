@@ -120,19 +120,30 @@ def draw_mode_select(win, current_mode="demo", pos_mode="one-way"):
 
 
 APIFIELDS = [
-    ("bybit_api_key",      "API Key    "),
-    ("bybit_api_secret",   "API Secret "),
-    ("telegram_bot_token", "TG Token   "),
-    ("telegram_chat_id",   "TG Chat ID "),
-    ("sendgrid_api_key",   "SG API Key "),
-    ("email_from",         "From Email "),
+    ("bybit_api_key",      "BYBIT Key    "),
+    ("bybit_api_secret",   "BYBIT Secret "),
+    ("okx_api_key",        "OKX Key      "),
+    ("okx_api_secret",     "OKX Secret   "),
+    ("telegram_bot_token", "TG Token     "),
+    ("telegram_chat_id",   "TG Chat ID   "),
+    ("sendgrid_api_key",   "SG API Key   "),
+    ("email_from",         "From Email   "),
 ]
+
+EXCHANGES = ["bybit", "okx"]
+OKX_MARKETS = ["futures", "spot"]
 
 def _ensure_api_state(state):
     if not hasattr(state, 'bybit_api_key'):
         state.bybit_api_key = ""
     if not hasattr(state, 'bybit_api_secret'):
         state.bybit_api_secret = ""
+    if not hasattr(state, 'okx_api_key'):
+        state.okx_api_key = ""
+    if not hasattr(state, 'okx_api_secret'):
+        state.okx_api_secret = ""
+    if not hasattr(state, 'okx_market'):
+        state.okx_market = "futures"
     if not hasattr(state, 'telegram_bot_token'):
         state.telegram_bot_token = ""
     if not hasattr(state, 'telegram_chat_id'):
@@ -157,10 +168,10 @@ def draw_api_input(win, state, selected=0, editing=False, edit_buf="",
     draw_box(win, by, bx, 28, bw, "⚙  API & ALERT SETTINGS", CYAN)
 
     safe_addstr(win, by+1, bx+2,
-        "Enter API Key and Secret from Bybit testnet (demo) or mainnet (real).",
+        "Enter API Key and Secret from Bybit or OKX.",
         cg(WHITE))
     safe_addstr(win, by+2, bx+2,
-        "Create at:  bybit.com → Account → API Management → Create Key",
+        "Create at:  bybit.com → API Management  |  okx.com → API Key",
         cg(YELLOW))
     safe_addstr(win, by+3, bx+2,
         "Required permissions:  Read  +  Trade  (NO Withdraw needed)",
@@ -172,13 +183,14 @@ def draw_api_input(win, state, selected=0, editing=False, edit_buf="",
     safe_addstr(win, by+4, bx+16, mode_lbl, cg(mode_col) | curses.A_BOLD)
 
     safe_addstr(win, by+5, bx+2, "── BYBIT ──────────────────────────────────────", cg(DIM))
-    safe_addstr(win, by+5+4, bx+2, "── TELEGRAM (optional) ────────────────────────", cg(DIM))
+    safe_addstr(win, by+5+4, bx+2, "── OKX ────────────────────────────────────────", cg(DIM))
+    safe_addstr(win, by+5+8, bx+2, "── TELEGRAM (optional) ────────────────────────", cg(DIM))
 
     for i, (key, label) in enumerate(APIFIELDS):
-        row  = by + 6 + i * 2 + (1 if i >= 2 else 0)
+        row  = by + 6 + i * 2 + (1 if i >= 4 else 0)
         val  = getattr(state, key, "")
         disp = edit_buf if (editing and selected == i) else val
-        if key == "bybit_api_secret" and not (editing and selected == i):
+        if key in ("bybit_api_secret", "okx_api_secret") and not (editing and selected == i):
             disp = "●" * min(len(disp), 32) if disp else ""
         hl   = curses.A_REVERSE if selected == i else 0
         safe_addstr(win, row, bx+2, f"{label}:", cg(WHITE) | curses.A_BOLD)
