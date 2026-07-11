@@ -1,9 +1,8 @@
-"""Order executor — handles placing orders and managing positions."""
+"""Order executor - handles placing orders and managing positions."""
 
 import time
 
 def execute_signal(state, signal: str, score: int, price: float):
-    """Execute a trading signal via Bybit API. Returns True if order was placed."""
     from bot.bybit_api import place_order, set_leverage
     from bot.risk_manager import calculate_position_size, can_trade
 
@@ -16,6 +15,7 @@ def execute_signal(state, signal: str, score: int, price: float):
         state.add_log("[SKIP] No API credentials configured", "WARN")
         return False
 
+    exchange = getattr(state, "exchange", "bybit")
     symbol = state.pair.replace("/", "")
     side = "Buy" if signal == "BUY" else "Sell"
 
@@ -108,10 +108,10 @@ def execute_signal(state, signal: str, score: int, price: float):
     order_id = result.get("orderId", "?")
     prefix = "[DEMO]" if demo else "[REAL]"
     mode_tag = " [HEDGE]" if state.position_mode == "hedge" else ""
-    state.add_log(f"{prefix} {side} {size} {symbol} @ market — Order {order_id}{mode_tag}")
+    state.add_log(f"{prefix} {side} {size} {symbol} @ market - Order {order_id}{mode_tag}")
     try:
         from ui.alerts_screen import push_alert
-        push_alert(state, "OK", f"{prefix} {side} {size} {symbol} @ {price:.1f} · TP:{state.take_profit}% SL:{state.stop_loss}%")
+        push_alert(state, "OK", f"{prefix} {side} {size} {symbol} @ {price:.1f} - TP:{state.take_profit}% SL:{state.stop_loss}%")
     except Exception:
         pass
     state.positions = []
@@ -119,7 +119,6 @@ def execute_signal(state, signal: str, score: int, price: float):
     return True
 
 def close_position(state, position: dict):
-    """Close a position via Bybit/OKX API."""
     exchange = getattr(state, "exchange", "bybit")
     demo = state.mode == "demo"
 
@@ -142,7 +141,6 @@ def close_position(state, position: dict):
         state.trade_cooldown_until = 0.0
         return True
 
-    # Default: Bybit
     if not state.get_main_account():
         return False
 
